@@ -1,0 +1,69 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: scanshield-db
+
+    environment:
+      MYSQL_DATABASE: scanshield
+      MYSQL_USER: scanshielduser
+      MYSQL_PASSWORD: StrongPassword123
+      MYSQL_ROOT_PASSWORD: RootPassword123
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u root -pRootPassword123 --silent"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: scanshield-backend
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: on-failure
+
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: scanshield-frontend
+
+    ports:
+      - "5173:5173"
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    depends_on:
+      - backend
+
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  mysql_data:
