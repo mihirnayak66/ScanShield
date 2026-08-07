@@ -21,6 +21,19 @@ pipeline {
             }
         }
 
+        stage('Bandit Security Scan') {
+    steps {
+        bat '''
+        python -m bandit -r . -f html -o bandit-report.html || exit /b 0
+        '''
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'bandit-report.html', fingerprint: true
+        }
+    }
+}
+
         stage('Verify Docker') {
             steps {
                 bat 'docker --version'
