@@ -11,15 +11,19 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    bat '''
-                    sonar-scanner ^
-                    -Dsonar.projectKey=scanshield ^
-                    -Dsonar.projectName=ScanShield ^
-                    -Dsonar.projectVersion=1.0 ^
-                    -Dsonar.sources=. ^
-                    -Dsonar.host.url=http://localhost:9000
-                    '''
+                script {
+                    def scannerHome = tool 'sonarscanner'
+
+                    withSonarQubeEnv('sonarqube') {
+                        bat """
+                        "${scannerHome}\\bin\\sonar-scanner.bat" ^
+                        -Dsonar.projectKey=scanshield ^
+                        -Dsonar.projectName=ScanShield ^
+                        -Dsonar.projectVersion=1.0 ^
+                        -Dsonar.sources=. ^
+                        -Dsonar.host.url=http://localhost:9000
+                        """
+                    }
                 }
             }
         }
