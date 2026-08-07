@@ -22,17 +22,28 @@ pipeline {
         }
 
         stage('Bandit Security Scan') {
-    steps {
-        bat '''
-        python -m bandit -r . -f html -o bandit-report.html || exit /b 0
-        '''
-    }
-    post {
-        always {
-            archiveArtifacts artifacts: 'bandit-report.html', fingerprint: true
+            steps {
+                bat '''
+                python -m bandit -r . -f html -o bandit-report.html || exit /b 0
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'bandit-report.html', fingerprint: true
+                }
+            }
         }
-    }
-}
+
+        stage('Generate SBOM') {
+            steps {
+                bat 'syft . -o cyclonedx-json=sbom.json'
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'sbom.json', fingerprint: true
+                }
+            }
+        }
 
         stage('Verify Docker') {
             steps {
