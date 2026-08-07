@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 script {
@@ -20,8 +14,7 @@ pipeline {
                         -Dsonar.projectKey=scanshield ^
                         -Dsonar.projectName=ScanShield ^
                         -Dsonar.projectVersion=1.0 ^
-                        -Dsonar.sources=. ^
-                        -Dsonar.host.url=http://localhost:9000
+                        -Dsonar.sources=.
                         """
                     }
                 }
