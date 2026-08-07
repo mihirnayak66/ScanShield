@@ -1,4 +1,4 @@
-services:
+[12:36 am, 8/8/2026] mihir nayak: services:
   db:
     image: mysql:8.4
     container_name: scanshield-db
@@ -40,6 +40,47 @@ services:
       db:
         condition: service_healthy
 
+    restart: on-failu…
+[12:36 am, 8/8/2026] Amazon Pay: Hi! Looks like you have replied with a message that we don’t recognize. Please reply with STOP or UNSUBSCRIBE to stop receiving updates about your transactions on WhatsApp.
+[12:39 am, 8/8/2026] mihir nayak: services:
+  db:
+    image: mysql:8.4
+
+    environment:
+      MYSQL_DATABASE: scanshield
+      MYSQL_USER: scanshielduser
+      MYSQL_PASSWORD: StrongPassword123
+      MYSQL_ROOT_PASSWORD: RootPassword123
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -u root -pRootPassword123 --silent"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      db:
+        condition: service_healthy
+
     restart: on-failure
 
     command: >
@@ -50,8 +91,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-
-    container_name: scanshield-frontend
 
     ports:
       - "5173:5173"
@@ -65,5 +104,24 @@ services:
 
     command: npm run dev -- --host 0.0.0.0
 
+  sonarqube:
+    image: sonarqube:lts-community
+
+    ports:
+      - "9000:9000"
+
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+    restart: unless-stopped
+
 volumes:
   mysql_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
