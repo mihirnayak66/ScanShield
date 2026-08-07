@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        sonarQube 'sonarscanner'
-    }
-
     stages {
 
         stage('Checkout') {
@@ -16,13 +12,14 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube') {
-                    bat """
+                    bat '''
                     sonar-scanner ^
                     -Dsonar.projectKey=scanshield ^
                     -Dsonar.projectName=ScanShield ^
+                    -Dsonar.projectVersion=1.0 ^
                     -Dsonar.sources=. ^
                     -Dsonar.host.url=http://localhost:9000
-                    """
+                    '''
                 }
             }
         }
@@ -56,6 +53,20 @@ pipeline {
             steps {
                 bat 'docker compose ps'
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+        }
+
+        success {
+            echo 'Build Successful!'
+        }
+
+        failure {
+            echo 'Build Failed!'
         }
     }
 }
