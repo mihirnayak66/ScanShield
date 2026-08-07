@@ -1,41 +1,60 @@
 pipeline {
     agent any
 
+    tools {
+        sonarQube 'sonarscanner'
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    bat """
+                    sonar-scanner ^
+                    -Dsonar.projectKey=scanshield ^
+                    -Dsonar.projectName=ScanShield ^
+                    -Dsonar.sources=. ^
+                    -Dsonar.host.url=http://localhost:9000
+                    """
+                }
+            }
+        }
+
         stage('Verify Docker') {
             steps {
-                sh 'docker --version'
-                sh 'docker compose version'
+                bat 'docker --version'
+                bat 'docker compose version'
             }
         }
 
         stage('Build Backend') {
             steps {
-                sh 'docker build -t scanshield-backend .'
+                bat 'docker build -t scanshield-backend .'
             }
         }
 
         stage('Build Frontend') {
             steps {
-                sh 'docker build -t scanshield-frontend ./frontend'
+                bat 'docker build -t scanshield-frontend ./frontend'
             }
         }
 
         stage('Deploy') {
             steps {
-                sh 'docker compose up -d --build'
+                bat 'docker compose up -d --build'
             }
         }
 
         stage('Verify Containers') {
             steps {
-                sh 'docker compose ps'
+                bat 'docker compose ps'
             }
         }
     }
