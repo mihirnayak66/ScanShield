@@ -44,6 +44,19 @@ pipeline {
                 }
             }
         }
+        stage('Gitleaks Secret Scan') {
+            
+    steps {
+        bat '''
+        gitleaks detect --source . --report-format json --report-path gitleaks-report.json --exit-code 0
+        '''
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
+        }
+    }
+}
 
         stage('Verify Docker') {
             steps {
