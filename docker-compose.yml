@@ -32,6 +32,8 @@ services:
 
     volumes:
       - .:/app
+      - ./private.pem:/app/private.pem:ro
+      - ./public.pem:/app/public.pem:ro
 
     depends_on:
       db:
