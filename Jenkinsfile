@@ -27,20 +27,26 @@ pipeline {
                 python -m bandit -r . -f html -o bandit-report.html || exit /b 0
                 '''
             }
+
             post {
                 always {
-                    archiveArtifacts artifacts: 'bandit-report.html', fingerprint: true
+                    archiveArtifacts artifacts: 'bandit-report.html',
+                                     fingerprint: true
                 }
             }
         }
 
         stage('Generate SBOM') {
             steps {
-                bat 'syft . -o cyclonedx-json=sbom.json'
+                bat '''
+                syft . -o cyclonedx-json=sbom.json
+                '''
             }
+
             post {
                 always {
-                    archiveArtifacts artifacts: 'sbom.json', fingerprint: true
+                    archiveArtifacts artifacts: 'sbom.json',
+                                     fingerprint: true
                 }
             }
         }
@@ -48,12 +54,17 @@ pipeline {
         stage('Gitleaks Secret Scan') {
             steps {
                 bat '''
-                gitleaks detect --source . --report-format json --report-path gitleaks-report.json --exit-code 0
+                gitleaks detect --source . ^
+                --report-format json ^
+                --report-path gitleaks-report.json ^
+                --exit-code 0
                 '''
             }
+
             post {
                 always {
-                    archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
+                    archiveArtifacts artifacts: 'gitleaks-report.json',
+                                     fingerprint: true
                 }
             }
         }
@@ -67,33 +78,53 @@ pipeline {
 
         stage('Build Backend') {
             steps {
-                bat 'docker build -t scanshield-backend .'
+                bat '''
+                docker build -t scanshield-backend .
+                '''
             }
         }
 
         stage('Trivy Container Scan') {
             steps {
                 bat '''
-                C:\\trivy_0.73.0_windows-64bit\\trivy.exe image --timeout 10m scanshield-backend
+                C:\\trivy_0.73.0_windows-64bit\\trivy.exe image ^
+                --timeout 10m ^
+                --format template ^
+                --template "@C:\\trivy_0.73.0_windows-64bit\\contrib\\html.tpl" ^
+                -o trivy-report.html ^
+                scanshield-backend
                 '''
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-report.html',
+                                     fingerprint: true
+                }
             }
         }
 
         stage('Build Frontend') {
             steps {
-                bat 'docker build -t scanshield-frontend ./frontend'
+                bat '''
+                docker build -t scanshield-frontend ./frontend
+                '''
             }
         }
 
         stage('Deploy') {
             steps {
-                bat 'docker compose up -d --build'
+                bat '''
+                docker compose up -d --build
+                '''
             }
         }
 
         stage('Verify Containers') {
             steps {
-                bat 'docker compose ps'
+                bat '''
+                docker compose ps
+                '''
             }
         }
     }
