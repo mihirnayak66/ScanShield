@@ -44,19 +44,19 @@ pipeline {
                 }
             }
         }
+
         stage('Gitleaks Secret Scan') {
-            
-    steps {
-        bat '''
-        gitleaks detect --source . --report-format json --report-path gitleaks-report.json --exit-code 0
-        '''
-    }
-    post {
-        always {
-            archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
+            steps {
+                bat '''
+                gitleaks detect --source . --report-format json --report-path gitleaks-report.json --exit-code 0
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
+                }
+            }
         }
-    }
-}
 
         stage('Verify Docker') {
             steps {
@@ -68,6 +68,14 @@ pipeline {
         stage('Build Backend') {
             steps {
                 bat 'docker build -t scanshield-backend .'
+            }
+        }
+
+        stage('Trivy Container Scan') {
+            steps {
+                bat '''
+                C:\\trivy_0.73.0_windows-64bit\\trivy.exe image --timeout 10m scanshield-backend
+                '''
             }
         }
 
