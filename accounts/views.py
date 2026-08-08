@@ -15,7 +15,9 @@ class RegisterView(generics.CreateAPIView):
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
 
+
     def post(self, request):
+        password="milan"
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

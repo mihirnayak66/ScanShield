@@ -155,7 +155,7 @@ function App() {
       <div className="card">
         <div className="logo">🛡️</div>
 
-        <h1>ScanShield</h1>
+        <h1>Scaneshield</h1>
 
         <p className="subtitle">
           AI Powered Vulnerability Scanner
